@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DSH RegexLab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">RX</div>
+      <div><strong>RegexLab</strong><span>Powered by Harness</span></div>
+    </div>
+    <button class="primary block" id="newConversation">＋ 新对话</button>
+    <div class="section-label"><span>对话记录</span></div>
+    <div id="conversationList" class="item-list conversation-list"></div>
+  </aside>
+
+  <main class="main">
+    <header class="main-header">
+      <div>
+        <div class="title-row">
+          <span id="statusDot" class="dot"></span>
+          <h1 id="currentName">正则实验室</h1>
+        </div>
+        <p id="currentDetail">解析正则、批量测试、ReDoS 风险预警、样本泛化</p>
+      </div>
+      <div class="header-actions">
+        <button class="ghost" id="openDanger">🛡 危险扫描</button>
+        <button class="ghost icon-btn" id="toggleTheme" title="切换主题">🌙</button>
+      </div>
+    </header>
+
+    <div id="workspace" class="workspace">
+      <section class="center">
+        <div id="chatMessages" class="chat-scroll"></div>
+        <div class="composer-wrap">
+          <div id="streamStatus" class="stream-status hidden">
+            <span id="streamStatusText"><span class="status-spinner"></span>AI 正在思考</span>
+          </div>
+          <div class="composer">
+            <textarea id="chatInput" rows="1" placeholder="问正则，例如：解析 ^1[3-9]\d{9}$ 并评估 ReDoS 风险"></textarea>
+            <div class="composer-bar">
+              <span class="composer-hint"><kbd>⌘</kbd>+<kbd>↵</kbd> 发送 · 正则测试全部隔离限时执行</span>
+              <div class="composer-actions">
+                <button class="ghost small hidden" id="stopStream">停止</button>
+                <button class="send-btn" id="sendMessage" title="发送">↑</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="resource-sidebar">
+        <div class="resource-scroll">
+          <div class="resource-header">
+            <b>工作台</b>
+            <button class="ghost small" id="refreshResource">刷新</button>
+          </div>
+          <nav class="resource-tabs">
+            <button data-resource-tab="parse" class="active">解析</button>
+            <button data-resource-tab="test">测试</button>
+            <button data-resource-tab="library">模式库</button>
+            <button data-resource-tab="samples">样本→正则</button>
+          </nav>
+          <section class="panel" data-tab="parse">
+            <div class="panel-title"><span>正则解析</span></div>
+            <div class="panel-body" style="padding:8px">
+              <div style="display:flex;gap:6px;margin-bottom:8px">
+                <input id="parsePattern" placeholder="输入正则，如 ^\d{4}-\d{2}$" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font:inherit">
+                <input id="parseFlags" placeholder="flags" style="width:64px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font:inherit">
+                <button class="ghost small" id="parseBtn">解析</button>
+              </div>
+              <div id="parseResult" class="muted">输入正则查看 token 结构、分组数与危险度</div>
+            </div>
+          </section>
+          <section class="panel hidden" data-tab="test">
+            <div class="panel-title"><span>批量测试</span></div>
+            <div class="panel-body" style="padding:8px">
+              <div style="display:flex;gap:6px;margin-bottom:8px">
+                <input id="testPattern" placeholder="正则…" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font:inherit">
+                <button class="ghost small" id="testBtn">运行</button>
+              </div>
+              <textarea id="testCases" rows="5" style="width:100%;font:inherit;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);box-sizing:border-box" placeholder="每行一个测试输入，可加 =true/=false 期望，如：&#10;13800138000=true&#10;12345=false"></textarea>
+              <div id="testResult" class="muted" style="margin-top:8px">运行后显示每个用例的匹配结果与耗时</div>
+            </div>
+          </section>
+          <section class="panel hidden" data-tab="library">
+            <div class="panel-title"><span>常用模式库</span></div>
+            <div id="libraryCard" class="panel-body muted">点击"刷新"加载</div>
+          </section>
+          <section class="panel hidden" data-tab="samples">
+            <div class="panel-title"><span>样本 → 正则</span></div>
+            <div class="panel-body" style="padding:8px">
+              <textarea id="samplesInput" rows="4" style="width:100%;font:inherit;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);box-sizing:border-box" placeholder="每行一个样本，如：&#10;2024-01-15&#10;2023-12-08"></textarea>
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <button class="ghost small" id="samplesBtn">泛化</button>
+              </div>
+              <div id="samplesResult" class="muted" style="margin-top:8px">泛化结果可直接复制</div>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="modal hidden" id="dangerModal">
+    <form class="modal-card" id="dangerForm" style="width:520px">
+      <h2>🛡 ReDoS 危险扫描</h2>
+      <label>正则表达式<input name="pattern" required placeholder="(a+)+$" style="font-family:ui-monospace,Menlo,monospace"></label>
+      <p class="muted small">检测嵌套量词 / 重叠 alternation / 无上限贪婪等灾难回溯结构。高危模式会被拒绝在服务内执行测试。</p>
+      <div class="modal-actions"><button type="button" class="ghost" id="cancelDangerModal">取消</button><button class="primary">扫描</button></div>
+    </form>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

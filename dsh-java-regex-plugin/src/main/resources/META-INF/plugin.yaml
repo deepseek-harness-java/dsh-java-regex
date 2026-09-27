@@ -1,0 +1,6 @@
+id: dsh-java-regex-plugin
+name: DSH RegexLab Plugin
+version: 0.1.0
+author: Xiaofuge
+description: Regex Lab tools (parse regex structure, batch test with timeout guard, ReDoS danger scan, infer pattern from samples, common CN pattern library) for DeepSeek Harness.
+entrypoint: cn.xiaofuge.dsh.regex.plugin.DshRegexLabPlugin
